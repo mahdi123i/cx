@@ -1,6 +1,6 @@
 local Script = "Get Moon Stand for free at discord.gg/mfyCBWWExF"
 
-local Owner = "Mahdirml123i"
+local Owner = ""
 local BlackScreen = false
 local DisableRendering = false
 local FPSCap = 60
@@ -1215,8 +1215,8 @@ function setupChatListener(player)
                         break
                     end
                 end
-            elseif msgLower:match("^%.s%s+([^%s]+)%s+([^%s]+)$") then
-                local inputName, botName = msgLower:match("^%.s%s+([^%s]+)%s+([^%s]+)$")
+            elseif msgLower:match("^%.stomp%s+([^%s]+)%s+([^%s]+)$") then
+                local inputName, botName = msgLower:match("^%.stomp%s+([^%s]+)%s+([^%s]+)$")
                 for _, target in pairs(Players:GetPlayers()) do
                     local name, display = target.Name:lower(), target.DisplayName:lower()
                     if name:find(inputName, 1, true) or display:find(inputName, 1, true) then
@@ -1228,8 +1228,8 @@ function setupChatListener(player)
                         break
                     end
                 end
-            elseif msgLower:match("^%.s%s+([^%s]+)$") then
-                local inputName = msgLower:match("^%.s%s+([^%s]+)$")
+            elseif msgLower:match("^%.stomp%s+([^%s]+)$") then
+                local inputName = msgLower:match("^%.stomp%s+([^%s]+)$")
                 for _, target in pairs(Players:GetPlayers()) do
                     local name, display = target.Name:lower(), target.DisplayName:lower()
                     if name:find(inputName, 1, true) or display:find(inputName, 1, true) then
@@ -1241,8 +1241,8 @@ function setupChatListener(player)
                         break
                     end
                 end
-            elseif msgLower:match("^%.b%s+([^%s]+)%s+([^%s]+)$") then
-                local inputName, botName = msgLower:match("^%.b%s+([^%s]+)%s+([^%s]+)$")
+            elseif msgLower:match("^%.gbring%s+([^%s]+)%s+([^%s]+)$") then
+                local inputName, botName = msgLower:match("^%.gbring%s+([^%s]+)%s+([^%s]+)$")
                 for _, target in pairs(Players:GetPlayers()) do
                     local name, display = target.Name:lower(), target.DisplayName:lower()
                     if name:find(inputName, 1, true) or display:find(inputName, 1, true) then
@@ -1254,8 +1254,8 @@ function setupChatListener(player)
                         break
                     end
                 end
-            elseif msgLower:match("^%.b%s+([^%s]+)$") then
-                local inputName = msgLower:match("^%.b%s+([^%s]+)$")
+            elseif msgLower:match("^%.gbring%s+([^%s]+)$") then
+                local inputName = msgLower:match("^%.gbring%s+([^%s]+)$")
                 for _, target in pairs(Players:GetPlayers()) do
                     local name, display = target.Name:lower(), target.DisplayName:lower()
                     if name:find(inputName, 1, true) or display:find(inputName, 1, true) then
@@ -1267,8 +1267,8 @@ function setupChatListener(player)
                         break
                     end
                 end
-            elseif msgLower:match("^%.d%s+([^%s]+)%s+([^%s]+)$") then
-                local inputName, botName = msgLower:match("^%.d%s+([^%s]+)%s+([^%s]+)$")
+            elseif msgLower:match("^%.knock%s+([^%s]+)%s+([^%s]+)$") then
+                local inputName, botName = msgLower:match("^%.knock%s+([^%s]+)%s+([^%s]+)$")
                 for _, target in pairs(Players:GetPlayers()) do
                     local name, display = target.Name:lower(), target.DisplayName:lower()
                     if name:find(inputName, 1, true) or display:find(inputName, 1, true) then
@@ -1280,8 +1280,8 @@ function setupChatListener(player)
                         break
                     end
                 end
-            elseif msgLower:match("^%.d%s+([^%s]+)$") then
-                local inputName = msgLower:match("^%.d%s+([^%s]+)$")
+            elseif msgLower:match("^%.knock%s+([^%s]+)$") then
+                local inputName = msgLower:match("^%.knock%s+([^%s]+)$")
                 for _, target in pairs(Players:GetPlayers()) do
                     local name, display = target.Name:lower(), target.DisplayName:lower()
                     if name:find(inputName, 1, true) or display:find(inputName, 1, true) then
