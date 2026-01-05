@@ -1,6 +1,6 @@
 local Script = "Get Moon Stand for free at discord.gg/mfyCBWWExF"
 
-local Owner = "K_Zerb"
+local Owner = "Mahdirml123i"
 local BlackScreen = false
 local DisableRendering = false
 local FPSCap = 60
