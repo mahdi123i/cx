@@ -1955,24 +1955,62 @@ function getAmmoCount(gunName)
     return nil
 end
 
+-- FIXED FUNCTION TO CHECK IF WE HAVE A GUN
 function hasGun(toolName)
-    local Character = Player.Character
-    local Backpack = Player:FindFirstChild("Backpack")
-    if Backpack then
-        for _, item in ipairs(Backpack:GetChildren()) do
+    local player = Player
+    if not player then return false end
+    
+    -- Check backpack
+    local backpack = player:FindFirstChild("Backpack")
+    if backpack then
+        for _, item in ipairs(backpack:GetChildren()) do
             if item:IsA("Tool") and item.Name == toolName then
                 return true
             end
         end
     end
-    if Character then
-        for _, item in ipairs(Character:GetChildren()) do
+    
+    -- Check character
+    local character = player.Character
+    if character then
+        for _, item in ipairs(character:GetChildren()) do
             if item:IsA("Tool") and item.Name == toolName then
                 return true
             end
         end
     end
+    
     return false
+end
+
+-- FIXED FUNCTION TO EQUIP TOOL
+function equipTool(toolName)
+    local player = Player
+    if not player then return end
+    
+    -- Try to find tool in backpack first
+    local backpack = player:FindFirstChild("Backpack")
+    local tool = nil
+    
+    if backpack then
+        tool = backpack:FindFirstChild(toolName)
+    end
+    
+    -- If not in backpack, check if already equipped
+    if not tool then
+        local character = player.Character
+        if character then
+            tool = character:FindFirstChild(toolName)
+        end
+    end
+    
+    -- Equip the tool
+    if tool and tool:IsA("Tool") then
+        local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:EquipTool(tool)
+        end
+    end
 end
 
 function getNextItemToBuy()
@@ -2046,48 +2084,83 @@ if executor and executor:lower():find("xeno") then
     end
 end
 
+-- FIXED GUN BUYING LOOP (ACTIVATED)
 task.spawn(function()
+    local gunBuyAttempts = 0
+    local maxAttempts = 5
+    
     while true do
-        local gunKey = Guns[currentGunIndex]
-        local gunInfo = gunData[gunKey]
-        if gunInfo and getNextItemToBuy() == "gun" then
-            local toolName = gunInfo.toolName
-            local shopName = gunInfo.shopName
-            local shopPart = workspace.Ignored.Shop:FindFirstChild(shopName)
-            local Character = Player.Character or Player.CharacterAdded:Wait()
-
-            if shopPart and Character and root and humanoid and not hasGun(toolName) then
-                buyingGunInProgress = true
-
-                local clickDetector = shopPart:FindFirstChild("ClickDetector")
-
-                while not hasGun(toolName) do
-                    if root then
-                        root.CFrame = CFrame.new(workspace.Ignored.Shop[shopName].Head.CFrame.Position + Vector3.new(0, -8, 0))
+        task.wait(2) -- Wait 2 seconds between checks
+        
+        local char = Player.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+        
+        -- Only buy guns when we're not busy with other tasks
+        if char and root and humanoid and humanoid.Health > 0 then
+            -- Check if we need to buy any guns from our list
+            for i = 1, #Guns do
+                local gunKey = Guns[i]
+                local gunInfo = gunData[gunKey]
+                
+                if gunInfo then
+                    local toolName = gunInfo.toolName
+                    
+                    -- Check if we don't have this gun
+                    if not hasGun(toolName) then
+                        
+                        local shopName = gunInfo.shopName
+                        local shopPart = workspace.Ignored.Shop:FindFirstChild(shopName)
+                        
+                        if shopPart then
+                            buyingGunInProgress = true
+                            gunBuyAttempts = 0
+                            local clickDetector = shopPart:FindFirstChild("ClickDetector")
+                            
+                            if clickDetector then
+                                
+                                -- Teleport to shop
+                                local shopPosition = shopPart.Position
+                                root.CFrame = CFrame.new(shopPosition + Vector3.new(0, -8, 0))
+                                
+                                -- Attempt to buy the gun multiple times
+                                while not hasGun(toolName) and gunBuyAttempts < maxAttempts do
+                                    fireclickdetector(clickDetector)
+                                    task.wait(0.5) -- Wait between attempts
+                                    gunBuyAttempts = gunBuyAttempts + 1
+                                    
+                                    -- Check if we got the gun
+                                    if hasGun(toolName) then
+                                        -- Equip the gun after buying
+                                        equipTool(toolName)
+                                        break
+                                    end
+                                end
+                            end
+                            
+                            buyingGunInProgress = false
+                        end
+                        
+                        -- Move to next gun in next iteration
+                        break
                     end
-                    fireclickdetector(clickDetector)
-                    if not humanoid or humanoid.Health <= 0 then break end
-                    task.wait()
                 end
-                buyingGunInProgress = false
             end
         end
-        currentGunIndex += 1
-        if currentGunIndex > #Guns then
-            currentGunIndex = 1
-        end
-        task.wait()
     end
 end)
 
 task.spawn(function()
     while true do
         local char = Player.Character
-        if char and automaskenabled and getNextItemToBuy() == "mask" then
+        if char and automaskenabled and not buyingMaskInProgress and not buyingGunInProgress and not buyingInProgress then
             pcall(function()
                 local humanoid = char:FindFirstChildOfClass("Humanoid")
 
-                if Player.Backpack:FindFirstChild("[Mask]") or char:FindFirstChild("[Mask]") or char:FindFirstChild("In-gameMask") then buyingMaskInProgress = false return end
+                if Player.Backpack:FindFirstChild("[Mask]") or char:FindFirstChild("[Mask]") or char:FindFirstChild("In-gameMask") then 
+                    buyingMaskInProgress = false 
+                    return 
+                end
 
                 local ShopFolder = workspace:WaitForChild("Ignored"):WaitForChild("Shop")
 
@@ -2100,6 +2173,8 @@ task.spawn(function()
                 if not clickDetector then return end
 
                 buyingMaskInProgress = true
+                local char = Player.Character
+                local root = char:FindFirstChild("HumanoidRootPart")
 
                 while automaskenabled and char and not (Player.Backpack:FindFirstChild("[Mask]") or char:FindFirstChild("[Mask]")) do
                     local char = Player.Character
@@ -2108,7 +2183,7 @@ task.spawn(function()
                         root.CFrame = CFrame.new(maskItem.Head.CFrame.Position + Vector3.new(0, -8, 0))
                     end
                     fireclickdetector(clickDetector)
-                    task.wait()
+                    task.wait(0.1)
                     if not automaskenabled or not char or (Player.Backpack:FindFirstChild("[Mask]") or char:FindFirstChild("[Mask]")) then break end
                 end
 
@@ -2151,49 +2226,57 @@ AmmoMap = {
     ["[Double-Barrel SG]"] = "18 [Double-Barrel SG Ammo] - $55"
 }
 
+-- FIXED AMMO BUYING LOOP
 task.spawn(function()
     while true do
-        local equippedGuns = getEquippedGuns()
-        for _, tool in ipairs(equippedGuns) do
-            local gunName = tool.Name
-            if hasGun(gunName) then
-                local ammoCount = getAmmoCount(gunName)
-                if ammoCount and ammoCount <= 0 then
-                    buyingInProgress = true
-
-                    local ShopFolder = workspace:WaitForChild("Ignored"):WaitForChild("Shop")
-                    local ammoItemName = AmmoMap[gunName]
-                    local ammoItem = ShopFolder:FindFirstChild(ammoItemName)
-                    local Character = Player.Character or Player.CharacterAdded:Wait()
-
-                    if ammoItem and Character and root and humanoid then
-                        local clickDetector = ammoItem:FindFirstChild("ClickDetector")
-                        local lastAmmo = getAmmoCount(gunName)
-                        local purchaseCount = 0
-
-                        while purchaseCount < 6 do
-                            if humanoid then
-                                humanoid:UnequipTools()
+        task.wait(3) -- Check ammo every 3 seconds
+        
+        local char = Player.Character
+        if not char then continue end
+        
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        local root = char:FindFirstChild("HumanoidRootPart")
+        
+        if humanoid and root and humanoid.Health > 0 then
+            -- Check equipped guns for low ammo
+            for _, tool in ipairs(char:GetChildren()) do
+                if tool:IsA("Tool") and tool:FindFirstChild("Ammo") then
+                    local ammoValue = tool.Ammo.Value
+                    
+                    if ammoValue <= 0 then
+                        local gunName = tool.Name
+                        local ammoItemName = AmmoMap[gunName]
+                        
+                        if ammoItemName then
+                            buyingInProgress = true
+                            
+                            local shopFolder = workspace.Ignored.Shop
+                            local ammoItem = shopFolder:FindFirstChild(ammoItemName)
+                            
+                            if ammoItem then
+                                local clickDetector = ammoItem:FindFirstChild("ClickDetector")
+                                
+                                if clickDetector then
+                                    -- Teleport to ammo shop
+                                    root.CFrame = CFrame.new(ammoItem.Position + Vector3.new(0, -8, 0))
+                                    
+                                    -- Buy ammo multiple times
+                                    for i = 1, 6 do
+                                        fireclickdetector(clickDetector)
+                                        task.wait(0.3)
+                                    end
+                                    
+                                    -- Reload after buying
+                                    ReplicatedStorage.MainEvent:FireServer("Reload", tool)
+                                end
                             end
-                            if root then
-                                root.CFrame = CFrame.new(ammoItem.Head.CFrame.Position + Vector3.new(0, -8, 0))
-                            end
-                            fireclickdetector(clickDetector)
-                            if not humanoid or humanoid.Health <= 0 then break end
-                            task.wait()
-                            local newAmmo = getAmmoCount(gunName)
-                            if newAmmo and newAmmo > lastAmmo then
-                                lastAmmo = newAmmo
-                                purchaseCount += 1
-                            end
+                            
+                            buyingInProgress = false
                         end
                     end
-                    reloadTool()
-                    buyingInProgress = false
                 end
             end
         end
-        task.wait()
     end
 end)
 
